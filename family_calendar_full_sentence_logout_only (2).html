@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Shared Calendar</title>
+<style>
+:root{--bg:#f7f3ec;--card:#fffaf2;--ink:#2f2a24;--muted:#7b6f63;--line:#eadfce;--accent:#9b6a3c;--accent-dark:#6f4622;--green:#3f7d55;--blue:#426a9c;--red:#a65345;--gold:#c49445;--purple:#6d5cae;--shadow:0 14px 35px rgba(70,45,20,.13);--radius:22px}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,#fff6df 0,transparent 34%),linear-gradient(135deg,#f7f3ec,#efe0cd);color:var(--ink);min-height:100vh}button,input,select,textarea{font:inherit}button{border:0;border-radius:14px;padding:11px 15px;background:var(--accent);color:#fff;cursor:pointer;font-weight:800;box-shadow:0 8px 18px rgba(111,70,34,.18)}button:hover{background:var(--accent-dark)}button.secondary{background:#efe4d3;color:var(--ink);box-shadow:none}button.danger{background:var(--red)}button.small{padding:7px 10px;border-radius:10px;font-size:13px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:white;color:var(--ink);outline:none}textarea{min-height:82px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(155,106,60,.12)}.hidden{display:none!important}.login-wrap{width:min(500px,92vw);margin:7vh auto;padding:28px;background:rgba(255,250,242,.94);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow)}.brand{background:linear-gradient(135deg,#3a2a1e,#8a5a2d);color:white;border-radius:24px;padding:22px;margin-bottom:18px}.brand h1{margin:0;font-size:30px;letter-spacing:-.04em}.brand p{margin:8px 0 0;color:#f5e8d4}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.tab{background:#efe4d3;color:var(--ink);box-shadow:none}.tab.active{background:var(--accent);color:white}.hint{font-size:13px;color:var(--muted);line-height:1.45}.app{width:min(1240px,94vw);margin:0 auto;padding:22px 0 40px}.topbar{background:linear-gradient(135deg,#3a2a1e,#8a5a2d);color:white;border-radius:28px;padding:22px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}.topbar h1{margin:0;font-size:clamp(25px,4vw,40px);letter-spacing:-.04em}.topbar p{margin:8px 0 0;color:#f5e8d4}.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);padding:10px 14px;border-radius:999px;font-weight:800;white-space:nowrap}.toolbar{margin:18px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.month-controls,.action-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.month-title{font-size:24px;font-weight:900;min-width:220px;text-align:center}.layout{display:grid;grid-template-columns:1.5fr .9fr;gap:18px;align-items:start}.card{background:rgba(255,250,242,.92);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.panel{padding:18px}.weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}.weekday{padding:14px 8px;font-size:13px;font-weight:900;color:var(--muted);text-align:center;border-bottom:1px solid var(--line);background:#fff5e7}.day{min-height:170px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px;cursor:pointer;background:rgba(255,255,255,.45);overflow:hidden}.day:nth-child(7n){border-right:0}.day.outside{opacity:.35;background:#fbf5ea}.day.selected{outline:3px solid var(--accent);outline-offset:-3px}.day.today .date-num{background:var(--accent);color:white}.date-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-weight:900;margin-bottom:5px}.badges{display:grid;gap:4px}.badge{font-size:11px;border-radius:14px;padding:4px 7px;color:white;max-width:100%;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;word-break:break-word}.lunch{background:var(--green)}.dinner{background:var(--blue)}.event{background:var(--gold);color:#2f2413}.overseas{background:var(--red)}.school{background:var(--purple)}.home{background:#72563a}.form-grid{display:grid;gap:12px}.field label{display:block;font-size:13px;font-weight:900;color:var(--muted);margin-bottom:6px}.meal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check-row{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:center;font-weight:800}.check-row input{width:18px;height:18px}.entry-list{margin-top:18px;display:grid;gap:10px}.entry{border:1px solid var(--line);background:white;border-radius:16px;padding:12px}.entry-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.entry-name{font-weight:900}.entry-updater{font-size:12px;color:var(--muted);margin-top:3px}.entry-meta{color:var(--muted);font-size:13px;line-height:1.45}.entry-note{margin-top:8px;white-space:pre-wrap}.empty{color:var(--muted);border:1px dashed var(--line);border-radius:16px;padding:16px;text-align:center;background:rgba(255,255,255,.55)}.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.member-row{display:flex;justify-content:space-between;gap:10px;align-items:center;background:white;border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:8px}.setup-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}.setup-box pre{white-space:pre-wrap;overflow:auto;background:#2f2a24;color:#fffaf2;padding:12px;border-radius:12px;font-size:12px;max-height:260px}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#2f2a24;color:white;padding:12px 16px;border-radius:999px;box-shadow:var(--shadow);font-weight:800;z-index:20;display:none}.toast.show{display:block}@media(max-width:900px){.topbar,.layout,.admin-grid{grid-template-columns:1fr}.day{min-height:135px}.pill{width:fit-content}}@media(max-width:620px){.app{width:96vw}.month-title{min-width:100%;order:-1}.weekday{font-size:11px;padding:10px 2px}.day{min-height:120px;padding:6px}.badge{font-size:10px;padding:3px 5px}.meal-row{grid-template-columns:1fr}.toolbar{align-items:stretch}.month-controls,.action-controls{width:100%;justify-content:center}}@media print{.toolbar,.side-actions,.setup-box,.login-wrap{display:none!important}.layout{grid-template-columns:1fr}.card,.topbar{box-shadow:none}}
+</style>
+
+<style>
+#floatingLogoutBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  z-index:9999;
+  background:#a65345;
+  color:white;
+  border:none;
+  border-radius:50px;
+  padding:14px 18px;
+  font-weight:800;
+  box-shadow:0 8px 18px rgba(0,0,0,0.25);
+}
+#floatingLogoutBtn.hidden{
+  display:none!important;
+}
+</style>
+
+</head>
+<body>
+<div id="loginPage" class="login-wrap">
+  <div class="brand"><h1>Family Calendar</h1><p>Login to update lunch, dinner, school timing and special family events.</p></div>
+  <div class="tabs"><button id="memberTab" class="tab active" onclick="switchLogin('member')">Member Login</button><button id="adminTab" class="tab" onclick="switchLogin('admin')">Admin Login</button></div>
+  <div id="memberLogin" class="form-grid">
+    <div class="field"><label>Your Name</label><select id="loginMember"></select></div>
+    <button onclick="memberLogin()">Login as Member</button>
+    <p class="hint">Members can update only their own status for each day.</p>
+  </div>
+  <div id="adminLogin" class="form-grid hidden">
+    <div class="field"><label>Admin Password</label><input id="adminPassword" type="password" placeholder="Default: admin123"></div>
+    <button onclick="adminLogin()">Login as Admin</button>
+    <p class="hint">Default password is <b>admin123</b>. Change it inside Admin Settings after login.</p>
+  </div>
+</div>
+
+<main id="mainApp" class="app hidden">
+  <section class="topbar"><div><h1>Family Shared Calendar</h1><p id="welcomeText">Welcome</p></div><div class="pill" id="syncStatus">Local Mode</div></section>
+  <section class="toolbar"><div class="month-controls"><button class="secondary" onclick="changeMonth(-1)">← Previous</button><div class="month-title" id="monthTitle"></div><button class="secondary" onclick="changeMonth(1)">Next →</button><button onclick="goToday()">Today</button></div><div class="action-controls"><button class="secondary" onclick="loadRemoteData(true)">Refresh</button><button class="secondary" onclick="window.print()">Print</button><button class="danger" onclick="logout()">Logout</button></div></section>
+
+  <section id="adminPage" class="hidden">
+    <div class="admin-grid">
+      <div class="card panel"><h2>Admin: Family Members</h2><p class="hint">Add names here. These names will appear on the member login page.</p><div class="meal-row"><input id="newMemberName" placeholder="Example: Renee"><button onclick="addMember()">Add Name</button></div><div id="memberList"></div></div>
+      <div class="card panel"><h2>Admin Settings</h2><div class="form-grid"><div class="field"><label>Admin Password</label><input id="newAdminPassword" type="password" placeholder="New admin password"></div><button onclick="changeAdminPassword()">Change Password</button><div class="field"><label>Google Apps Script Web App URL</label><input id="webAppUrlInput" placeholder="Paste URL here for sharing across phones"></div><button onclick="saveWebAppUrl()">Save Shared Connection</button></div><div class="setup-box"><b>Important</b><p class="hint">Without Google Sheet connection, data saves only on this device. With Google Sheet connection, all family members can use the same GitHub Pages link and see the same updates.</p><details><summary><b>Apps Script code</b></summary><pre id="scriptCode"></pre></details></div></div>
+    </div>
+  </section>
+
+  <section id="calendarPage" class="layout">
+    <div class="card"><div class="weekdays"><div class="weekday">Sun</div><div class="weekday">Mon</div><div class="weekday">Tue</div><div class="weekday">Wed</div><div class="weekday">Thu</div><div class="weekday">Fri</div><div class="weekday">Sat</div></div><div class="calendar-grid" id="calendarGrid"></div></div>
+    <aside class="card panel"><h2>Update Day</h2><div class="hint" id="selectedDateText"></div><form class="form-grid" id="entryForm"><input type="hidden" id="editingId"><div class="field"><label>Updating as</label><input id="memberName" readonly></div><div class="meal-row"><div class="field"><label>Lunch</label><select id="lunchStatus"><option value="">Not updated</option><option>Yes</option><option>No</option></select></div><div class="field"><label>Dinner</label><select id="dinnerStatus"><option value="">Not updated</option><option>Yes</option><option>No</option></select></div></div><div class="field"><label>School / Work Timing</label><input id="schoolTiming" placeholder="Example: School 7.30am - 1.30pm"></div><div class="field"><label>Special Event / Notes</label><textarea id="specialEvent" placeholder="Example: CCA, tuition, overseas, appointment"></textarea></div><label class="check-row"><input type="checkbox" id="homeFlag"><span>At home / working from home today</span></label><label class="check-row"><input type="checkbox" id="overseasFlag"><span>Overseas / away</span></label><button type="submit">Save My Update</button></form><div class="entry-list" id="entryList"></div><h3>Day Summary</h3><div id="daySummary"></div></aside>
+  </section>
+</main>
+
+<button id="floatingLogoutBtn" class="hidden" onclick="logout()">Logout</button>
+
+<div class="toast" id="toast"></div>
+<script>
+const STORAGE_KEY='familyCalendarLoginAdmin_v1';const SETTINGS_KEY='familyCalendarSettings_v1';const URL_KEY='familyCalendarWebAppUrl_v1';
+const DEFAULT_WEB_APP_URL='https://script.google.com/macros/s/AKfycbyPzDmbi5tV1UQYZj_895cb9ad9wLuh5T-gsLzehU0OvUTCOngIP5x5bi-AqaOOPSrd/exec';
+const DEFAULT_MEMBERS=['Daddy','Mummy','Renee','Daughter','Grandma','Grandpa','Helper'];
+let state={entries:[],members:[...DEFAULT_MEMBERS]};let settings={adminPassword:'admin123'};let currentUser=null;let currentRole=null;let currentDate=new Date();let selectedDate=new Date();
+const APPS_SCRIPT_CODE=`const ENTRY_SHEET='FamilyCalendar';
+const MEMBER_SHEET='Members';
+const DEFAULT_MEMBERS=['Dad','Mum','Daughter','Son'];
+
+function ss(){return SpreadsheetApp.getActiveSpreadsheet();}
+
+function getEntrySheet(){
+  const book=ss();
+  let sh=book.getSheetByName(ENTRY_SHEET);
+  if(!sh){
+    sh=book.insertSheet(ENTRY_SHEET);
+    sh.appendRow(['id','date','memberName','lunchStatus','dinnerStatus','schoolTiming','specialEvent','homeFlag','overseasFlag','updatedBy','updatedAt']);
+  }
+  return sh;
+}
+
+function getMemberSheet(){
+  const book=ss();
+  let sh=book.getSheetByName(MEMBER_SHEET);
+  if(!sh){
+    sh=book.insertSheet(MEMBER_SHEET);
+    sh.appendRow(['name','active','updatedAt']);
+    DEFAULT_MEMBERS.forEach(n=>sh.appendRow([n,true,new Date()]));
+  }
+  return sh;
+}
+
+function json(data){
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function entries(){
+  const sh=getEntrySheet();
+  const rows=sh.getDataRange().getValues();
+  const head=rows.shift();
+  return rows.filter(r=>r[0]).map(r=>Object.fromEntries(head.map((h,i)=>[h,r[i]])));
+}
+
+function members(){
+  const sh=getMemberSheet();
+  const rows=sh.getDataRange().getValues();
+  return rows.slice(1).filter(r=>r[0] && String(r[1]).toLowerCase()!=='false').map(r=>String(r[0]));
+}
+
+function doGet(e){
+  return json({ok:true,members:members(),entries:entries()});
+}
+
+function doPost(e){
+  const body=JSON.parse(e.postData.contents||'{}');
+
+  if(body.action==='saveMembers'){
+    const sh=getMemberSheet();
+    sh.clear();
+    sh.appendRow(['name','active','updatedAt']);
+    (body.members||[]).forEach(n=>{if(n)sh.appendRow([n,true,new Date()]);});
+    return json({ok:true});
+  }
+
+  if(body.action==='deleteEntry'){
+    const sh=getEntrySheet();
+    const rows=sh.getDataRange().getValues();
+    const head=rows[0];
+    const idCol=head.indexOf('id');
+    for(let i=rows.length-1;i>=1;i--){
+      if(rows[i][idCol]===body.id) sh.deleteRow(i+1);
+    }
+    return json({ok:true});
+  }
+
+  const entry=body.entry;
+  const sh=getEntrySheet();
+  const rows=sh.getDataRange().getValues();
+  const head=rows[0];
+  const idCol=head.indexOf('id');
+  const dateCol=head.indexOf('date');
+  const memberCol=head.indexOf('memberName');
+  let found=-1;
+
+  for(let i=1;i<rows.length;i++){
+    if(rows[i][idCol]===entry.id || (rows[i][dateCol]===entry.date && rows[i][memberCol]===entry.memberName)){
+      found=i+1;
+    }
+  }
+
+  const row=head.map(h=>entry[h]??'');
+  if(found>0) sh.getRange(found,1,1,row.length).setValues([row]);
+  else sh.appendRow(row);
+
+  return json({ok:true});
+}`;
+function loadLocal(){try{state={...state,...JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')};settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch(e){} if(!state.members||!state.members.length)state.members=[...DEFAULT_MEMBERS];}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}
+function $(id){return document.getElementById(id)}function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function niceDate(d){return d.toLocaleDateString('en-SG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
+function switchLogin(type){$('memberLogin').classList.toggle('hidden',type!=='member');$('adminLogin').classList.toggle('hidden',type!=='admin');$('memberTab').classList.toggle('active',type==='member');$('adminTab').classList.toggle('active',type==='admin')}
+function populateLoginMembers(){const s=$('loginMember');s.innerHTML='<option value="">Select your name</option>'+state.members.map(n=>`<option>${escapeHtml(n)}</option>`).join('')}
+function memberLogin(){const name=$('loginMember').value;if(!name)return toast('Please select your name');currentUser=name;currentRole='member';openApp()}
+function adminLogin(){if($('adminPassword').value!==settings.adminPassword)return toast('Wrong admin password');currentUser='Admin';currentRole='admin';openApp()}
+function openApp(){$('loginPage').classList.add('hidden');$('mainApp').classList.remove('hidden');$('floatingLogoutBtn').classList.remove('hidden');$('welcomeText').textContent=currentRole==='admin'?'Admin login - manage family members and settings':`Welcome, ${currentUser}`;$('adminPage').classList.toggle('hidden',currentRole!=='admin');$('calendarPage').classList.toggle('hidden',currentRole==='admin');$('memberName').value=currentUser;renderAll();loadRemoteData(false)}
+function logout(){currentUser=null;currentRole=null;$('mainApp').classList.add('hidden');$('loginPage').classList.remove('hidden');$('floatingLogoutBtn').classList.add('hidden');$('adminPassword').value='';populateLoginMembers()}
+function addMember(){const name=$('newMemberName').value.trim();if(!name)return toast('Enter a name');if(state.members.includes(name))return toast('Name already exists');state.members.push(name);$('newMemberName').value='';saveLocal();renderAdmin();populateLoginMembers();saveRemoteMembers();toast('Family member added')}
+function removeMember(name){if(!confirm(`Remove ${name}? Existing calendar entries will remain.`))return;state.members=state.members.filter(n=>n!==name);saveLocal();renderAdmin();populateLoginMembers();saveRemoteMembers()}
+function renderAdmin(){if(currentRole!=='admin')return;$('memberList').innerHTML=state.members.map(n=>`<div class="member-row"><b>${escapeHtml(n)}</b><button class="danger small" onclick="removeMember('${escapeAttr(n)}')">Remove</button></div>`).join('')||'<div class="empty">No members yet</div>';$('webAppUrlInput').value=getWebAppUrl()||'';$('scriptCode').textContent=APPS_SCRIPT_CODE}
+function changeAdminPassword(){const p=$('newAdminPassword').value.trim();if(p.length<4)return toast('Use at least 4 characters');settings.adminPassword=p;$('newAdminPassword').value='';saveLocal();toast('Admin password changed')}
+function saveWebAppUrl(){localStorage.setItem(URL_KEY,$('webAppUrlInput').value.trim());updateSyncStatus();toast('Connection saved')}
+function getWebAppUrl(){return localStorage.getItem(URL_KEY)||DEFAULT_WEB_APP_URL||''}
+function updateSyncStatus(){const has=!!getWebAppUrl();$('syncStatus').textContent=has?'Shared Google Sheet Mode':'Local Mode'}
+function renderAll(){updateSyncStatus();renderAdmin();renderCalendar();renderSide()}
+function renderCalendar(){const y=currentDate.getFullYear(),m=currentDate.getMonth();$('monthTitle').textContent=currentDate.toLocaleDateString('en-SG',{month:'long',year:'numeric'});const first=new Date(y,m,1),start=new Date(y,m,1-first.getDay());let html='';const today=dateKey(new Date()),selected=dateKey(selectedDate);for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=dateKey(d);const entries=state.entries.filter(e=>e.date===key);let badges='';entries.forEach(e=>{
+    const name=shortName(e.memberName);
+    if(e.lunchStatus)badges+=`<span class="badge lunch">🍱 ${escapeHtml(name)}: ${escapeHtml(e.lunchStatus)}</span>`;
+    if(e.dinnerStatus)badges+=`<span class="badge dinner">🍽 ${escapeHtml(name)}: ${escapeHtml(e.dinnerStatus)}</span>`;
+    if(e.schoolTiming)badges+=`<span class="badge school">🎒 ${escapeHtml(name)}: ${escapeHtml(e.schoolTiming)}</span>`;
+    if(e.specialEvent)badges+=`<span class="badge event">⭐ ${escapeHtml(name)}: ${escapeHtml(e.specialEvent)}</span>`;
+    if(e.overseasFlag)badges+=`<span class="badge overseas">✈ ${escapeHtml(name)}: Away</span>`;
+    if(e.homeFlag)badges+=`<span class="badge home">🏠 ${escapeHtml(name)}: Home</span>`;
+  });html+=`<div class="day ${d.getMonth()!==m?'outside':''} ${key===today?'today':''} ${key===selected?'selected':''}" onclick="selectDate('${key}')"><div class="date-num">${d.getDate()}</div><div class="badges">${badges}</div></div>`}$('calendarGrid').innerHTML=html}
+function renderSide(){if(currentRole==='admin')return;const key=dateKey(selectedDate);$('selectedDateText').textContent=niceDate(selectedDate);const entries=state.entries.filter(e=>e.date===key).sort((a,b)=>(a.memberName||'').localeCompare(b.memberName||''));$('entryList').innerHTML=entries.length?entries.map(e=>entryHtml(e)).join(''):'<div class="empty">No updates for this day yet.</div>';const lunch=entries.filter(e=>e.lunchStatus).length,dinner=entries.filter(e=>e.dinnerStatus).length,away=entries.filter(e=>e.overseasFlag).length;$('daySummary').innerHTML=`<div class="hint"><b>${lunch}</b> lunch update(s)<br><b>${dinner}</b> dinner update(s)<br><b>${away}</b> overseas / away</div>`;loadMyEntryToForm()}
+function entryHtml(e){const canEdit=currentRole==='admin'||e.memberName===currentUser;return `<div class="entry"><div class="entry-head"><div><div class="entry-name">${escapeHtml(e.memberName)}</div><div class="entry-updater">Updated by ${escapeHtml(e.updatedBy||e.memberName)} · ${escapeHtml(formatDateTime(e.updatedAt))}</div></div>${canEdit?`<button class="secondary small" onclick="editEntry('${e.id}')">Edit</button>`:''}</div><div class="entry-meta">Lunch: <b>${escapeHtml(e.lunchStatus||'-')}</b><br>Dinner: <b>${escapeHtml(e.dinnerStatus||'-')}</b>${e.schoolTiming?`<br>Timing: <b>${escapeHtml(e.schoolTiming)}</b>`:''}${e.homeFlag?'<br>🏠 At home':''}${e.overseasFlag?'<br>✈️ Overseas / Away':''}</div>${e.specialEvent?`<div class="entry-note">${escapeHtml(e.specialEvent)}</div>`:''}</div>`}
+function loadMyEntryToForm(){const key=dateKey(selectedDate);const e=state.entries.find(x=>x.date===key&&x.memberName===currentUser);if(e)fillForm(e);else clearForm(false)}
+function fillForm(e){$('editingId').value=e.id;$('lunchStatus').value=e.lunchStatus||'';$('dinnerStatus').value=e.dinnerStatus||'';$('schoolTiming').value=e.schoolTiming||'';$('specialEvent').value=e.specialEvent||'';$('homeFlag').checked=!!e.homeFlag;$('overseasFlag').checked=!!e.overseasFlag}
+function clearForm(reset=true){$('editingId').value='';$('lunchStatus').value='';$('dinnerStatus').value='';$('schoolTiming').value='';$('specialEvent').value='';$('homeFlag').checked=false;$('overseasFlag').checked=false;if(reset)toast('Form cleared')}
+function editEntry(id){const e=state.entries.find(x=>x.id===id);if(e){fillForm(e);toast('Loaded for editing')}}
+$('entryForm').addEventListener('submit',async e=>{e.preventDefault();const key=dateKey(selectedDate);let id=$('editingId').value;const existing=state.entries.find(x=>x.date===key&&x.memberName===currentUser);if(!id&&existing)id=existing.id;const entry={id:id||crypto.randomUUID(),date:key,memberName:currentUser,lunchStatus:$('lunchStatus').value,dinnerStatus:$('dinnerStatus').value,schoolTiming:$('schoolTiming').value.trim(),specialEvent:$('specialEvent').value.trim(),homeFlag:$('homeFlag').checked,overseasFlag:$('overseasFlag').checked,updatedBy:currentUser,updatedAt:new Date().toISOString()};state.entries=state.entries.filter(x=>x.id!==entry.id && !(x.date===key&&x.memberName===currentUser));state.entries.push(entry);saveLocal();renderCalendar();renderSide();await saveRemoteEntry(entry);toast('Saved')});
+function selectDate(key){selectedDate=new Date(key+'T12:00:00');renderCalendar();renderSide()}function changeMonth(n){currentDate.setMonth(currentDate.getMonth()+n);renderCalendar()}function goToday(){currentDate=new Date();selectedDate=new Date();renderCalendar();renderSide()}
+async function loadRemoteData(show){const url=getWebAppUrl();if(!url){if(show)toast('Local mode only');return}try{const res=await fetch(url);const data=await res.json();const entries=Array.isArray(data)?data:(data.entries||[]);const members=Array.isArray(data.members)?data.members:null;if(members&&members.length)state.members=members;state.entries=entries.map(x=>({...x,homeFlag:x.homeFlag===true||x.homeFlag==='TRUE'||x.homeFlag==='true',overseasFlag:x.overseasFlag===true||x.overseasFlag==='TRUE'||x.overseasFlag==='true'}));saveLocal();populateLoginMembers();renderAdmin();renderCalendar();renderSide();if(show)toast('Shared data refreshed')}catch(err){if(show)toast('Unable to refresh shared data')}}
+async function saveRemoteEntry(entry){const url=getWebAppUrl();if(!url)return;try{await fetch(url,{method:'POST',body:JSON.stringify({entry})})}catch(err){toast('Saved locally, but shared sync failed')}}
+async function saveRemoteMembers(){const url=getWebAppUrl();if(!url)return;try{await fetch(url,{method:'POST',body:JSON.stringify({action:'saveMembers',members:state.members})});}catch(err){toast('Members saved locally, shared sync failed')}}
+function shortName(name){return String(name||'').trim().split(/\s+/)[0]||'Member'}
+function formatDateTime(v){if(!v)return '-';try{return new Date(v).toLocaleString('en-SG',{day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}catch(e){return v}}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function escapeAttr(s){return escapeHtml(s).replace(/`/g,'&#96;')}
+loadLocal();populateLoginMembers();$('scriptCode').textContent=APPS_SCRIPT_CODE;setInterval(()=>{if(currentRole==='member')loadRemoteData(false)},60000);
+</script>
+</body>
+</html>
