@@ -166,6 +166,23 @@ function $(id){return document.getElementById(id)}function toast(msg){const t=$(
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function niceDate(d){return d.toLocaleDateString('en-SG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
 function switchLogin(type){$('memberLogin').classList.toggle('hidden',type!=='member');$('adminLogin').classList.toggle('hidden',type!=='admin');$('memberTab').classList.toggle('active',type==='member');$('adminTab').classList.toggle('active',type==='admin')}
 function populateLoginMembers(){const s=$('loginMember');s.innerHTML='<option value="">Select your name</option>'+state.members.map(n=>`<option>${escapeHtml(n)}</option>`).join('')}
+
+async function loadMembersBeforeLogin(){
+  const url=getWebAppUrl();
+  populateLoginMembers();
+  if(!url)return;
+  try{
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.members && Array.isArray(data.members) && data.members.length){
+      state.members=data.members;
+      saveLocal();
+      populateLoginMembers();
+    }
+  }catch(err){
+    populateLoginMembers();
+  }
+}
 function memberLogin(){const name=$('loginMember').value;if(!name)return toast('Please select your name');currentUser=name;currentRole='member';openApp()}
 function adminLogin(){if($('adminPassword').value!==settings.adminPassword)return toast('Wrong admin password');currentUser='Admin';currentRole='admin';openApp()}
 function openApp(){$('loginPage').classList.add('hidden');$('mainApp').classList.remove('hidden');$('floatingLogoutBtn').classList.remove('hidden');$('welcomeText').textContent=currentRole==='admin'?'Admin login - manage family members and settings':`Welcome, ${currentUser}`;$('adminPage').classList.toggle('hidden',currentRole!=='admin');$('calendarPage').classList.toggle('hidden',currentRole==='admin');$('memberName').value=currentUser;renderAll();loadRemoteData(false)}
@@ -201,7 +218,7 @@ async function saveRemoteMembers(){const url=getWebAppUrl();if(!url)return;try{a
 function shortName(name){return String(name||'').trim().split(/\s+/)[0]||'Member'}
 function formatDateTime(v){if(!v)return '-';try{return new Date(v).toLocaleString('en-SG',{day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}catch(e){return v}}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function escapeAttr(s){return escapeHtml(s).replace(/`/g,'&#96;')}
-loadLocal();populateLoginMembers();$('scriptCode').textContent=APPS_SCRIPT_CODE;setInterval(()=>{if(currentRole==='member')loadRemoteData(false)},60000);
+loadLocal();loadMembersBeforeLogin();$('scriptCode').textContent=APPS_SCRIPT_CODE;setInterval(()=>{if(currentRole==='member')loadRemoteData(false)},60000);
 </script>
 </body>
 </html>
