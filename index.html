@@ -68,6 +68,22 @@
 const STORAGE_KEY='familyCalendarLoginAdmin_v1';const SETTINGS_KEY='familyCalendarSettings_v1';const URL_KEY='familyCalendarWebAppUrl_v1';
 const DEFAULT_WEB_APP_URL='https://script.google.com/macros/s/AKfycbyPzDmbi5tV1UQYZj_895cb9ad9wLuh5T-gsLzehU0OvUTCOngIP5x5bi-AqaOOPSrd/exec';
 const DEFAULT_MEMBERS=['Daddy','Mummy','Renee','Daughter','Grandma','Grandpa','Helper'];
+const SG_PUBLIC_HOLIDAYS_2026 = {
+  '2026-01-01': 'New Year\'s Day',
+  '2026-02-17': 'Chinese New Year',
+  '2026-02-18': 'Chinese New Year',
+  '2026-03-21': 'Hari Raya Puasa',
+  '2026-04-03': 'Good Friday',
+  '2026-05-01': 'Labour Day',
+  '2026-05-27': 'Hari Raya Haji',
+  '2026-05-31': 'Vesak Day',
+  '2026-06-01': 'Vesak Day Holiday',
+  '2026-08-09': 'National Day',
+  '2026-08-10': 'National Day Holiday',
+  '2026-11-08': 'Deepavali',
+  '2026-11-09': 'Deepavali Holiday',
+  '2026-12-25': 'Christmas Day'
+};
 let state={entries:[],members:[...DEFAULT_MEMBERS]};let settings={adminPassword:'admin123'};let currentUser=null;let currentRole=null;let currentDate=new Date();let selectedDate=new Date();
 const APPS_SCRIPT_CODE=`const ENTRY_SHEET='FamilyCalendar';
 const MEMBER_SHEET='Members';
@@ -195,15 +211,28 @@ function saveWebAppUrl(){localStorage.setItem(URL_KEY,$('webAppUrlInput').value.
 function getWebAppUrl(){return localStorage.getItem(URL_KEY)||DEFAULT_WEB_APP_URL||''}
 function updateSyncStatus(){const has=!!getWebAppUrl();$('syncStatus').textContent=has?'Shared Google Sheet Mode':'Local Mode'}
 function renderAll(){updateSyncStatus();renderAdmin();renderCalendar();renderSide()}
-function renderCalendar(){const y=currentDate.getFullYear(),m=currentDate.getMonth();$('monthTitle').textContent=currentDate.toLocaleDateString('en-SG',{month:'long',year:'numeric'});const first=new Date(y,m,1),start=new Date(y,m,1-first.getDay());let html='';const today=dateKey(new Date()),selected=dateKey(selectedDate);for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=dateKey(d);const entries=state.entries.filter(e=>e.date===key);let badges='';entries.forEach(e=>{
+function renderCalendar(){const y=currentDate.getFullYear(),m=currentDate.getMonth();$('monthTitle').textContent=currentDate.toLocaleDateString('en-SG',{month:'long',year:'numeric'});const first=new Date(y,m,1),start=new Date(y,m,1-first.getDay());let html='';const today=dateKey(new Date()),selected=dateKey(selectedDate);for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=dateKey(d);const entries=state.entries.filter(e=>e.date===key);let lunchBadges='',dinnerBadges='',otherBadges='';entries.forEach(e=>{
     const name=shortName(e.memberName);
-    if(e.lunchStatus)badges+=`<span class="badge lunch">🍱 ${escapeHtml(name)}: ${escapeHtml(e.lunchStatus)}</span>`;
-    if(e.dinnerStatus)badges+=`<span class="badge dinner">🍽 ${escapeHtml(name)}: ${escapeHtml(e.dinnerStatus)}</span>`;
-    if(e.schoolTiming)badges+=`<span class="badge school">🎒 ${escapeHtml(name)}: ${escapeHtml(e.schoolTiming)}</span>`;
-    if(e.specialEvent)badges+=`<span class="badge event">⭐ ${escapeHtml(name)}: ${escapeHtml(e.specialEvent)}</span>`;
-    if(e.overseasFlag)badges+=`<span class="badge overseas">✈ ${escapeHtml(name)}: Away</span>`;
-    if(e.homeFlag)badges+=`<span class="badge home">🏠 ${escapeHtml(name)}: Home</span>`;
-  });html+=`<div class="day ${d.getMonth()!==m?'outside':''} ${key===today?'today':''} ${key===selected?'selected':''}" onclick="selectDate('${key}')"><div class="date-num">${d.getDate()}</div><div class="badges">${badges}</div></div>`}$('calendarGrid').innerHTML=html}
+    if(e.lunchStatus)lunchBadges+=`<span class="badge lunch">🍱 ${escapeHtml(name)}: ${escapeHtml(e.lunchStatus)}</span>`;
+    if(e.dinnerStatus)dinnerBadges+=`<span class="badge dinner">🍽 ${escapeHtml(name)}: ${escapeHtml(e.dinnerStatus)}</span>`;
+    if(e.schoolTiming)otherBadges+=`<span class="badge school">🎒 ${escapeHtml(name)}: ${escapeHtml(e.schoolTiming)}</span>`;
+    if(e.specialEvent)otherBadges+=`<span class="badge event">⭐ ${escapeHtml(name)}: ${escapeHtml(e.specialEvent)}</span>`;
+    if(e.overseasFlag)otherBadges+=`<span class="badge overseas">✈ ${escapeHtml(name)}: Away</span>`;
+    if(e.homeFlag)otherBadges+=`<span class="badge home">🏠 ${escapeHtml(name)}: Home</span>`;
+  });
+  const flightBadges = otherBadges.match(/<span class="badge overseas">.*?<\/span>/g)?.join('') || '';
+  const specialBadges = otherBadges.match(/<span class="badge event">.*?<\/span>/g)?.join('') || '';
+  const schoolBadges = otherBadges.match(/<span class="badge school">.*?<\/span>/g)?.join('') || '';
+  const remainingOther = otherBadges
+    .replace(/<span class="badge overseas">.*?<\/span>/g,'')
+    .replace(/<span class="badge event">.*?<\/span>/g,'')
+    .replace(/<span class="badge school">.*?<\/span>/g,'');
+
+  const holidayBadge = SG_PUBLIC_HOLIDAYS_2026[key]
+    ? `<span class="badge event">🇸🇬 ${SG_PUBLIC_HOLIDAYS_2026[key]}</span>`
+    : '';
+  const badges = holidayBadge + flightBadges + specialBadges + lunchBadges + dinnerBadges + schoolBadges + remainingOther;
+  html+=`<div class="day ${d.getMonth()!==m?'outside':''} ${key===today?'today':''} ${key===selected?'selected':''}" onclick="selectDate('${key}')"><div class="date-num">${d.getDate()}</div><div class="badges">${badges}</div></div>`}$('calendarGrid').innerHTML=html}
 function renderSide(){if(currentRole==='admin')return;const key=dateKey(selectedDate);$('selectedDateText').textContent=niceDate(selectedDate);const entries=state.entries.filter(e=>e.date===key).sort((a,b)=>(a.memberName||'').localeCompare(b.memberName||''));$('entryList').innerHTML=entries.length?entries.map(e=>entryHtml(e)).join(''):'<div class="empty">No updates for this day yet.</div>';const lunch=entries.filter(e=>e.lunchStatus).length,dinner=entries.filter(e=>e.dinnerStatus).length,away=entries.filter(e=>e.overseasFlag).length;$('daySummary').innerHTML=`<div class="hint"><b>${lunch}</b> lunch update(s)<br><b>${dinner}</b> dinner update(s)<br><b>${away}</b> overseas / away</div>`;loadMyEntryToForm()}
 function entryHtml(e){const canEdit=currentRole==='admin'||e.memberName===currentUser;return `<div class="entry"><div class="entry-head"><div><div class="entry-name">${escapeHtml(e.memberName)}</div><div class="entry-updater">Updated by ${escapeHtml(e.updatedBy||e.memberName)} · ${escapeHtml(formatDateTime(e.updatedAt))}</div></div>${canEdit?`<button class="secondary small" onclick="editEntry('${e.id}')">Edit</button>`:''}</div><div class="entry-meta">Lunch: <b>${escapeHtml(e.lunchStatus||'-')}</b><br>Dinner: <b>${escapeHtml(e.dinnerStatus||'-')}</b>${e.schoolTiming?`<br>Timing: <b>${escapeHtml(e.schoolTiming)}</b>`:''}${e.homeFlag?'<br>🏠 At home':''}${e.overseasFlag?'<br>✈️ Overseas / Away':''}</div>${e.specialEvent?`<div class="entry-note">${escapeHtml(e.specialEvent)}</div>`:''}</div>`}
 function loadMyEntryToForm(){const key=dateKey(selectedDate);const e=state.entries.find(x=>x.date===key&&x.memberName===currentUser);if(e)fillForm(e);else clearForm(false)}
