@@ -34,19 +34,30 @@
   <div class="tabs"><button id="memberTab" class="tab active" onclick="switchLogin('member')">Member Login</button><button id="adminTab" class="tab" onclick="switchLogin('admin')">Admin Login</button></div>
   <div id="memberLogin" class="form-grid">
     <div class="field"><label>Your Name</label><select id="loginMember"></select></div>
+    <div class="field"><label>Password</label><input id="memberPassword" type="password" autocomplete="current-password" placeholder="Enter your password"></div>
     <button onclick="memberLogin()">Login as Member</button>
-    <p class="hint">Members can update only their own status for each day.</p>
+    <p class="hint">Enter your password to access and update your calendar.</p>
   </div>
   <div id="adminLogin" class="form-grid hidden">
-    <div class="field"><label>Admin Password</label><input id="adminPassword" type="password" placeholder="Default: admin123"></div>
+    <div class="field"><label>Admin Password</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Enter admin password"></div>
     <button onclick="adminLogin()">Login as Admin</button>
-    <p class="hint">Default password is <b>admin123</b>. Change it inside Admin Settings after login.</p>
+    <p class="hint">Administrator access is restricted.</p>
+  </div>
+</div>
+
+<div id="passwordPage" class="login-wrap hidden">
+  <div class="brand"><h1>Set Your Password</h1><p>Create a private password with at least 6 characters.</p></div>
+  <div class="form-grid">
+    <div class="field"><label>New Password</label><input id="forcedNewPassword" type="password" autocomplete="new-password"></div>
+    <div class="field"><label>Confirm New Password</label><input id="forcedConfirmPassword" type="password" autocomplete="new-password"></div>
+    <button onclick="submitPasswordChange()">Save New Password</button>
+    <button class="secondary" onclick="logout()">Cancel and Logout</button>
   </div>
 </div>
 
 <main id="mainApp" class="app hidden">
   <section class="topbar"><div><h1>Family Shared Calendar</h1><p id="welcomeText">Welcome</p></div><div class="pill" id="syncStatus">Local Mode</div></section>
-  <section class="toolbar"><div class="month-controls"><button class="secondary" onclick="changeMonth(-1)">← Previous</button><div class="month-title" id="monthTitle"></div><button class="secondary" onclick="changeMonth(1)">Next →</button><button onclick="goToday()">Today</button></div><div class="action-controls"><button class="secondary" onclick="loadRemoteData(true)">Refresh</button><button class="secondary" onclick="window.print()">Print</button><button class="danger" onclick="logout()">Logout</button></div></section>
+  <section class="toolbar"><div class="month-controls"><button class="secondary" onclick="changeMonth(-1)">← Previous</button><div class="month-title" id="monthTitle"></div><button class="secondary" onclick="changeMonth(1)">Next →</button><button onclick="goToday()">Today</button></div><div class="action-controls"><button class="secondary" onclick="loadRemoteData(true)">Refresh</button><button class="secondary" onclick="showPasswordChange()">Change Password</button><button class="secondary" onclick="window.print()">Print</button><button class="danger" onclick="logout()">Logout</button></div></section>
 
   <section id="adminPage" class="hidden">
     <div class="admin-grid">
@@ -66,6 +77,7 @@
 <div class="toast" id="toast"></div>
 <script>
 const STORAGE_KEY='familyCalendarLoginAdmin_v1';const SETTINGS_KEY='familyCalendarSettings_v1';const URL_KEY='familyCalendarWebAppUrl_v1';
+const SESSION_KEY='familyCalendarSecureSession_v3';
 const DEFAULT_WEB_APP_URL='https://script.google.com/macros/s/AKfycbyPzDmbi5tV1UQYZj_895cb9ad9wLuh5T-gsLzehU0OvUTCOngIP5x5bi-AqaOOPSrd/exec';
 const DEFAULT_MEMBERS=['Daddy','Mummy','Renee','Daughter','Grandma','Grandpa','Helper'];
 const SG_PUBLIC_HOLIDAYS_2026 = {
@@ -84,7 +96,7 @@ const SG_PUBLIC_HOLIDAYS_2026 = {
   '2026-11-09': 'Deepavali Holiday',
   '2026-12-25': 'Christmas Day'
 };
-let state={entries:[],members:[...DEFAULT_MEMBERS]};let settings={adminPassword:'admin123'};let currentUser=null;let currentRole=null;let currentDate=new Date();let selectedDate=new Date();
+let state={entries:[],members:[...DEFAULT_MEMBERS]};let settings={};let currentUser=null;let currentRole=null;let authToken=sessionStorage.getItem(SESSION_KEY)||'';let currentDate=new Date();let selectedDate=new Date();
 const APPS_SCRIPT_CODE=`const ENTRY_SHEET='FamilyCalendar';
 const MEMBER_SHEET='Members';
 const DEFAULT_MEMBERS=['Dad','Mum','Daughter','Son'];
@@ -176,8 +188,8 @@ function doPost(e){
 
   return json({ok:true});
 }`;
-function loadLocal(){try{state={...state,...JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')};settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch(e){} if(!state.members||!state.members.length)state.members=[...DEFAULT_MEMBERS];}
-function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}
+function loadLocal(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');if(Array.isArray(saved.members))state.members=saved.members;settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch(e){}state.entries=[];if(!state.members||!state.members.length)state.members=[...DEFAULT_MEMBERS];saveLocal()}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify({members:state.members}));localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}
 function $(id){return document.getElementById(id)}function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function niceDate(d){return d.toLocaleDateString('en-SG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
 function switchLogin(type){$('memberLogin').classList.toggle('hidden',type!=='member');$('adminLogin').classList.toggle('hidden',type!=='admin');$('memberTab').classList.toggle('active',type==='member');$('adminTab').classList.toggle('active',type==='admin')}
@@ -199,14 +211,19 @@ async function loadMembersBeforeLogin(){
     populateLoginMembers();
   }
 }
-function memberLogin(){const name=$('loginMember').value;if(!name)return toast('Please select your name');currentUser=name;currentRole='member';openApp()}
-function adminLogin(){if($('adminPassword').value!==settings.adminPassword)return toast('Wrong admin password');currentUser='Admin';currentRole='admin';openApp()}
+async function apiPost(payload){const url=getWebAppUrl();if(!url)throw new Error('Shared connection is not configured');const res=await fetch(url,{method:'POST',body:JSON.stringify(payload)});const data=await res.json();if(!data.ok)throw new Error(data.error||'Request failed');return data}
+async function loginRequest(role,name,password){try{const data=await apiPost({action:'login',role,name,password});authToken=data.token;sessionStorage.setItem(SESSION_KEY,authToken);currentUser=data.name;currentRole=data.role;if(data.mustChange){$('loginPage').classList.add('hidden');$('passwordPage').classList.remove('hidden');return}openApp()}catch(err){toast(err.message||'Login failed')}}
+function memberLogin(){const name=$('loginMember').value,password=$('memberPassword').value;if(!name)return toast('Please select your name');if(!password)return toast('Enter your password');loginRequest('member',name,password)}
+function adminLogin(){const password=$('adminPassword').value;if(!password)return toast('Enter your password');loginRequest('admin','Admin',password)}
 function openApp(){$('loginPage').classList.add('hidden');$('mainApp').classList.remove('hidden');$('floatingLogoutBtn').classList.remove('hidden');$('welcomeText').textContent=currentRole==='admin'?'Admin login - manage family members and settings':`Welcome, ${currentUser}`;$('adminPage').classList.toggle('hidden',currentRole!=='admin');$('calendarPage').classList.toggle('hidden',currentRole==='admin');$('memberName').value=currentUser;renderAll();loadRemoteData(false)}
-function logout(){currentUser=null;currentRole=null;$('mainApp').classList.add('hidden');$('loginPage').classList.remove('hidden');$('floatingLogoutBtn').classList.add('hidden');$('adminPassword').value='';populateLoginMembers()}
+async function logout(){const token=authToken;authToken='';sessionStorage.removeItem(SESSION_KEY);currentUser=null;currentRole=null;state.entries=[];saveLocal();try{if(token)await apiPost({action:'logout',token})}catch(e){}$('mainApp').classList.add('hidden');$('passwordPage').classList.add('hidden');$('loginPage').classList.remove('hidden');$('floatingLogoutBtn').classList.add('hidden');$('adminPassword').value='';$('memberPassword').value='';populateLoginMembers()}
 function addMember(){const name=$('newMemberName').value.trim();if(!name)return toast('Enter a name');if(state.members.includes(name))return toast('Name already exists');state.members.push(name);$('newMemberName').value='';saveLocal();renderAdmin();populateLoginMembers();saveRemoteMembers();toast('Family member added')}
 function removeMember(name){if(!confirm(`Remove ${name}? Existing calendar entries will remain.`))return;state.members=state.members.filter(n=>n!==name);saveLocal();renderAdmin();populateLoginMembers();saveRemoteMembers()}
-function renderAdmin(){if(currentRole!=='admin')return;$('memberList').innerHTML=state.members.map(n=>`<div class="member-row"><b>${escapeHtml(n)}</b><button class="danger small" onclick="removeMember('${escapeAttr(n)}')">Remove</button></div>`).join('')||'<div class="empty">No members yet</div>';$('webAppUrlInput').value=getWebAppUrl()||'';$('scriptCode').textContent=APPS_SCRIPT_CODE}
-function changeAdminPassword(){const p=$('newAdminPassword').value.trim();if(p.length<4)return toast('Use at least 4 characters');settings.adminPassword=p;$('newAdminPassword').value='';saveLocal();toast('Admin password changed')}
+function renderAdmin(){if(currentRole!=='admin')return;$('memberList').innerHTML=state.members.map(n=>`<div class="member-row"><b>${escapeHtml(n)}</b><span><button class="secondary small" onclick="resetMemberPassword('${escapeAttr(n)}')">Reset Password</button> <button class="danger small" onclick="removeMember('${escapeAttr(n)}')">Remove</button></span></div>`).join('')||'<div class="empty">No members yet</div>';$('webAppUrlInput').value=getWebAppUrl()||'';$('scriptCode').textContent='Secure backend v3 is maintained in Google Apps Script. Do not use the older embedded backend code.'}
+async function resetMemberPassword(name){if(!confirm(`Reset ${name}'s password to the standard temporary password?`))return;try{await apiPost({action:'resetPassword',token:authToken,name});toast(`${name}'s password was reset`)}catch(err){toast(err.message||'Reset failed')}}
+function changeAdminPassword(){showPasswordChange()}
+function showPasswordChange(){$('mainApp').classList.add('hidden');$('passwordPage').classList.remove('hidden');$('forcedNewPassword').value='';$('forcedConfirmPassword').value=''}
+async function submitPasswordChange(){const p=$('forcedNewPassword').value,c=$('forcedConfirmPassword').value;if(p.length<6)return toast('Use at least 6 characters');if(p!==c)return toast('Passwords do not match');try{await apiPost({action:'changePassword',token:authToken,newPassword:p});$('passwordPage').classList.add('hidden');openApp();toast('Password changed')}catch(err){toast(err.message||'Unable to change password')}}
 function saveWebAppUrl(){localStorage.setItem(URL_KEY,$('webAppUrlInput').value.trim());updateSyncStatus();toast('Connection saved')}
 function getWebAppUrl(){return localStorage.getItem(URL_KEY)||DEFAULT_WEB_APP_URL||''}
 function updateSyncStatus(){const has=!!getWebAppUrl();$('syncStatus').textContent=has?'Shared Google Sheet Mode':'Local Mode'}
@@ -241,9 +258,9 @@ function clearForm(reset=true){$('editingId').value='';$('lunchStatus').value=''
 function editEntry(id){const e=state.entries.find(x=>x.id===id);if(e){fillForm(e);toast('Loaded for editing')}}
 $('entryForm').addEventListener('submit',async e=>{e.preventDefault();const key=dateKey(selectedDate);let id=$('editingId').value;const existing=state.entries.find(x=>x.date===key&&x.memberName===currentUser);if(!id&&existing)id=existing.id;const entry={id:id||crypto.randomUUID(),date:key,memberName:currentUser,lunchStatus:$('lunchStatus').value,dinnerStatus:$('dinnerStatus').value,schoolTiming:$('schoolTiming').value.trim(),specialEvent:$('specialEvent').value.trim(),homeFlag:$('homeFlag').checked,overseasFlag:$('overseasFlag').checked,updatedBy:currentUser,updatedAt:new Date().toISOString()};state.entries=state.entries.filter(x=>x.id!==entry.id && !(x.date===key&&x.memberName===currentUser));state.entries.push(entry);saveLocal();renderCalendar();renderSide();await saveRemoteEntry(entry);toast('Saved')});
 function selectDate(key){selectedDate=new Date(key+'T12:00:00');renderCalendar();renderSide()}function changeMonth(n){currentDate.setMonth(currentDate.getMonth()+n);renderCalendar()}function goToday(){currentDate=new Date();selectedDate=new Date();renderCalendar();renderSide()}
-async function loadRemoteData(show){const url=getWebAppUrl();if(!url){if(show)toast('Local mode only');return}try{const res=await fetch(url);const data=await res.json();const entries=Array.isArray(data)?data:(data.entries||[]);const members=Array.isArray(data.members)?data.members:null;if(members&&members.length)state.members=members;state.entries=entries.map(x=>({...x,homeFlag:x.homeFlag===true||x.homeFlag==='TRUE'||x.homeFlag==='true',overseasFlag:x.overseasFlag===true||x.overseasFlag==='TRUE'||x.overseasFlag==='true'}));saveLocal();populateLoginMembers();renderAdmin();renderCalendar();renderSide();if(show)toast('Shared data refreshed')}catch(err){if(show)toast('Unable to refresh shared data')}}
-async function saveRemoteEntry(entry){const url=getWebAppUrl();if(!url)return;try{await fetch(url,{method:'POST',body:JSON.stringify({entry})})}catch(err){toast('Saved locally, but shared sync failed')}}
-async function saveRemoteMembers(){const url=getWebAppUrl();if(!url)return;try{await fetch(url,{method:'POST',body:JSON.stringify({action:'saveMembers',members:state.members})});}catch(err){toast('Members saved locally, shared sync failed')}}
+async function loadRemoteData(show){if(!authToken)return;try{const data=await apiPost({action:'loadData',token:authToken});const entries=data.entries||[],members=data.members||null;if(members&&members.length)state.members=members;state.entries=entries.map(x=>({...x,homeFlag:x.homeFlag===true||x.homeFlag==='TRUE'||x.homeFlag==='true',overseasFlag:x.overseasFlag===true||x.overseasFlag==='TRUE'||x.overseasFlag==='true'}));saveLocal();populateLoginMembers();renderAdmin();renderCalendar();renderSide();if(show)toast('Shared data refreshed')}catch(err){if(/LOGIN_REQUIRED|SESSION_EXPIRED/.test(err.message)){logout();return}if(show)toast(err.message||'Unable to refresh shared data')}}
+async function saveRemoteEntry(entry){try{await apiPost({token:authToken,entry})}catch(err){toast('Saved locally, but shared sync failed');throw err}}
+async function saveRemoteMembers(){try{await apiPost({action:'saveMembers',token:authToken,members:state.members})}catch(err){toast('Members saved locally, shared sync failed')}}
 function shortName(name){return String(name||'').trim().split(/\s+/)[0]||'Member'}
 function formatDateTime(v){if(!v)return '-';try{return new Date(v).toLocaleString('en-SG',{day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true})}catch(e){return v}}
 function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function escapeAttr(s){return escapeHtml(s).replace(/`/g,'&#96;')}
